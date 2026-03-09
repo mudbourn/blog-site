@@ -7,7 +7,7 @@ COPY . /app/
 WORKDIR /app
 RUN npm install
 RUN npm run build
-RUN apk add --no-local-cache curl 
+RUN apk add --no-cache curl 
 
 FROM node:22-alpine
 COPY .npmrc package.json /app/
