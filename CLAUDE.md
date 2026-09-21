@@ -33,5 +33,5 @@ admin-configurable data, not chrome, so it stays as stored emoji strings.
 ## Stack
 
 Next.js App Router, TypeScript, PostgreSQL with Drizzle ORM, hand-written CSS.
-The full design and architecture spec lives outside the repo at the Syncopated
-Chaos design document the owner supplies.
+This is the mudbourn.info blog site. The full design and architecture spec
+lives outside the repo in the design document the owner supplies.

@@ -37,3 +37,6 @@ drizzle/meta
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Local agent guidance
+CLAUDE.md
