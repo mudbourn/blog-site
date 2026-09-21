@@ -1,6 +1,14 @@
 # Dependencies
 node_modules
 
+.DS_Store
+*.pem
+*.log
+*.txt
+*.md
+!README.md
+!docs/*.md
+
 # Next.js
 .next
 out
