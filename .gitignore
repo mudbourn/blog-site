@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+out
+build
+next-env.d.ts
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+*.pem
+
+# Editor
+.vscode
+.idea
+
+# Drizzle
+drizzle/meta
