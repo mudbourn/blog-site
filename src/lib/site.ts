@@ -58,6 +58,17 @@ export async function getSiteIdentity(): Promise<SiteIdentity> {
   }
 }
 
+export async function getMusicQueueSource(): Promise<string> {
+  const rows = await db
+    .select()
+    .from(siteConfig)
+    .where(eq(siteConfig.key, "music_queue_source"))
+
+  const value = rows[0]?.value
+
+  return typeof value === "string" ? value : "random"
+}
+
 export async function getReactionEmojiSet(): Promise<string[]> {
   const rows = await db
     .select()

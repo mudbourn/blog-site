@@ -1,6 +1,7 @@
 import { Header } from "@/ui/Header"
 import { Marginalia } from "@/ui/Marginalia"
 import { MediaStack } from "@/ui/MediaStack"
+import { Player } from "@/ui/player/Player"
 import { TextureLayer } from "@/ui/TextureLayer"
 import { getActiveTheme } from "@/lib/theme/active"
 import {
@@ -66,7 +67,7 @@ export default async function LandingPage() {
         />
       </main>
 
-      <div className="player-placeholder" aria-hidden />
+      <Player emojiSet={emojiSet} />
     </div>
   )
 }
