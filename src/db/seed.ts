@@ -15,7 +15,7 @@ import { SEED_PRESETS } from "@/lib/theme/presets"
 const REACTION_EMOJI_SET = [
   "\u{1F525}",
   "\u{1F480}",
-  "⚡",
+  "\u{26A1}",
   "\u{1F3B7}",
   "\u{1FA78}"
 ]
@@ -48,7 +48,7 @@ async function seedConfig(activeThemePresetId: string): Promise<void> {
     { key: "active_theme_preset_id", value: activeThemePresetId },
     { key: "reaction_emoji_set", value: REACTION_EMOJI_SET },
     { key: "music_queue_source", value: "random" },
-    { key: "owner_handle", value: "mudbourn.info" },
+    { key: "owner_handle", value: "mudbourn's blog" },
     { key: "owner_tagline", value: "a live self-portrait" },
     { key: "owner_avatar_url", value: "" },
     { key: "social_card_url", value: "" },

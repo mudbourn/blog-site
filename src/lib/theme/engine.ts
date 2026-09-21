@@ -15,13 +15,13 @@ const PILLAR_WIDTHS: Record<PillarMode, string> = {
 
 const BRACKET_OPEN: Record<BracketStyle, string> = {
   square: "'['",
-  angle: "'‹'",
+  angle: "''",
   none: "''"
 }
 
 const BRACKET_CLOSE: Record<BracketStyle, string> = {
   square: "']'",
-  angle: "'›'",
+  angle: "''",
   none: "''"
 }
 

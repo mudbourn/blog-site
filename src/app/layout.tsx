@@ -7,7 +7,7 @@ import { getActiveTheme } from "@/lib/theme/active"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "mudbourn.info",
+  title: "mudbourn's blog",
   description: "A live self-portrait."
 }
 

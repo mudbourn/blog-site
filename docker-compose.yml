@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: syncopated
-      POSTGRES_PASSWORD: syncopated
-      POSTGRES_DB: syncopated
+      POSTGRES_USER: mudbourn
+      POSTGRES_PASSWORD: mudbourn
+      POSTGRES_DB: mudbourn
     ports:
       - "5432:5432"
     volumes:
