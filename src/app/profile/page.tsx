@@ -1,22 +1,22 @@
 import { Header } from "@/ui/Header"
 import { Marginalia } from "@/ui/Marginalia"
-import { MediaStack } from "@/ui/MediaStack"
 import { Player } from "@/ui/player/Player"
+import { ProfileSections } from "@/ui/ProfileSections"
 import { TextureLayer } from "@/ui/TextureLayer"
 import { getActiveTheme } from "@/lib/theme/active"
 import {
-  getExhibitionTargets,
   getHamburgerLinks,
   getLiveStatus,
   getOpenExhibitions,
-  getPublishedBlocks,
+  getProfile,
+  getProfileMarginalia,
   getReactionEmojiSet,
   getSiteIdentity
 } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
 
-export default async function LandingPage() {
+export default async function ProfilePage() {
   const [
     theme,
     identity,
@@ -24,8 +24,8 @@ export default async function LandingPage() {
     links,
     openExhibitions,
     emojiSet,
-    blocks,
-    targets
+    profile,
+    marginalia
   ] = await Promise.all([
     getActiveTheme(),
     getSiteIdentity(),
@@ -33,8 +33,8 @@ export default async function LandingPage() {
     getHamburgerLinks(),
     getOpenExhibitions(),
     getReactionEmojiSet(),
-    getPublishedBlocks(),
-    getExhibitionTargets()
+    getProfile(),
+    getProfileMarginalia()
   ])
 
   const bracketStyle = theme.config.bracket_style
@@ -54,6 +54,8 @@ export default async function LandingPage() {
       <Marginalia
         gravity={gravity}
         swap={theme.config.animation_marginalia_swap}
+        initialLeft={marginalia.left || undefined}
+        initialRight={marginalia.right || undefined}
       />
 
       <main className="pillar">
@@ -65,13 +67,7 @@ export default async function LandingPage() {
           bracketStyle={bracketStyle}
         />
 
-        <MediaStack
-          blocks={blocks}
-          emojiSet={emojiSet}
-          targets={targets}
-          bracketStyle={bracketStyle}
-          richTextRules={richTextRules}
-        />
+        <ProfileSections profile={profile} richTextRules={richTextRules} />
       </main>
 
       <Player emojiSet={emojiSet} />

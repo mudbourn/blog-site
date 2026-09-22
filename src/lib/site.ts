@@ -5,6 +5,7 @@ import {
   exhibitions,
   hamburgerLinks,
   mediaBlocks,
+  profilePage,
   siteConfig,
   statuses
 } from "@/db/schema"
@@ -150,6 +151,17 @@ export async function getExhibitionTargets(): Promise<
   return map
 }
 
+export type StatusEntry = typeof statuses.$inferSelect
+
+export async function getStatusArchive(): Promise<StatusEntry[]> {
+  const rows = await db
+    .select()
+    .from(statuses)
+    .orderBy(desc(statuses.createdAt))
+
+  return rows
+}
+
 export type FeedBlock = typeof mediaBlocks.$inferSelect
 
 export async function getPublishedBlocks(): Promise<FeedBlock[]> {
@@ -160,4 +172,110 @@ export async function getPublishedBlocks(): Promise<FeedBlock[]> {
     .orderBy(asc(mediaBlocks.position))
 
   return rows
+}
+
+export interface StackBadge {
+  name: string
+  version: string | null
+}
+
+export interface ProfileProject {
+  name: string
+  blurb: string
+  url: string | null
+  status: string | null
+}
+
+export interface ProfileData {
+  bio: string
+  stack: StackBadge[]
+  projects: ProfileProject[]
+}
+
+function parseStack(value: unknown): StackBadge[] {
+  if (!Array.isArray(value)) return []
+
+  const badges: StackBadge[] = []
+
+  for (const raw of value) {
+    if (typeof raw === "string") {
+      if (raw) badges.push({ name: raw, version: null })
+
+      continue
+    }
+
+    if (typeof raw !== "object" || raw === null) continue
+
+    const entry = raw as Record<string, unknown>
+
+    const name = typeof entry.name === "string" ? entry.name : ""
+
+    if (!name) continue
+
+    badges.push({
+      name,
+      version:
+        typeof entry.version === "string" && entry.version
+          ? entry.version
+          : null
+    })
+  }
+
+  return badges
+}
+
+function parseProjects(value: unknown): ProfileProject[] {
+  if (!Array.isArray(value)) return []
+
+  const projects: ProfileProject[] = []
+
+  for (const raw of value) {
+    if (typeof raw !== "object" || raw === null) continue
+
+    const entry = raw as Record<string, unknown>
+
+    const name = typeof entry.name === "string" ? entry.name : ""
+
+    if (!name) continue
+
+    projects.push({
+      name,
+      blurb: typeof entry.blurb === "string" ? entry.blurb : "",
+      url: typeof entry.url === "string" && entry.url ? entry.url : null,
+      status:
+        typeof entry.status === "string" && entry.status ? entry.status : null
+    })
+  }
+
+  return projects
+}
+
+export async function getProfile(): Promise<ProfileData> {
+  const rows = await db
+    .select()
+    .from(profilePage)
+    .where(eq(profilePage.id, 1))
+    .limit(1)
+
+  const row = rows[0]
+
+  return {
+    bio: row?.bioMarkdown ?? "",
+    stack: parseStack(row?.techStack),
+    projects: parseProjects(row?.projects)
+  }
+}
+
+export interface ProfileMarginalia {
+  left: string
+  right: string
+}
+
+export async function getProfileMarginalia(): Promise<ProfileMarginalia> {
+  const map = await loadConfig()
+
+  return {
+    left: readString(map, "profile_marginalia_left_url"),
+    right: readString(map, "profile_marginalia_right_url")
+  }
 }

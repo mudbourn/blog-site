@@ -3,7 +3,7 @@ import "@/db/env-cli"
 import { eq } from "drizzle-orm"
 
 import { db } from "@/db"
-import { hamburgerLinks, mediaBlocks, statuses } from "@/db/schema"
+import { hamburgerLinks, mediaBlocks, profilePage, statuses } from "@/db/schema"
 
 const DEV = "/static/dev"
 
@@ -128,12 +128,66 @@ async function seedBlocks(): Promise<void> {
   ])
 }
 
+async function seedProfile(): Promise<void> {
+  const bio = [
+    "i build **small, exacting tools** and record the room they run in.",
+    "",
+    "days go to slide calibration and scripting layers, nights to field",
+    "recordings and this _live self-portrait_."
+  ].join("\n")
+
+  const techStack = [
+    { name: "TypeScript", version: "5.7" },
+    { name: "Next.js", version: "15" },
+    { name: "PostgreSQL", version: "18" },
+    { name: "Drizzle" },
+    { name: "Lua" },
+    { name: "Nextcloud" },
+    { name: "Navidrome" }
+  ]
+
+  const projects = [
+    {
+      name: "mudscript",
+      blurb: "a scripting layer for slide calibration",
+      url: "https://example.com/mudscript",
+      status: "ACTIVE"
+    },
+    {
+      name: "field recordings",
+      blurb: "ambient captures, weekly",
+      url: "https://example.com/field",
+      status: "WIP"
+    }
+  ]
+
+  await db
+    .insert(profilePage)
+    .values({
+      id: 1,
+      bioMarkdown: bio,
+      techStack,
+      projects
+    })
+    .onConflictDoUpdate({
+      target: profilePage.id,
+      set: {
+        bioMarkdown: bio,
+        techStack,
+        projects,
+        updatedAt: new Date()
+      }
+    })
+}
+
 async function main(): Promise<void> {
   await seedStatus()
 
   await seedLinks()
 
   await seedBlocks()
+
+  await seedProfile()
 
   console.log("Dev seed complete")
 }

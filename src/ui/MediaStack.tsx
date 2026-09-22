@@ -1,5 +1,6 @@
 import { MediaBlock } from "@/ui/MediaBlock"
 import { PortalBlock } from "@/ui/PortalBlock"
+import type { RichTextRules } from "@/ui/RichText"
 import type { BracketStyle } from "@/lib/theme/types"
 import type { ExhibitionTarget, FeedBlock } from "@/lib/site"
 
@@ -8,6 +9,7 @@ interface MediaStackProps {
   emojiSet: string[]
   targets: Map<string, ExhibitionTarget>
   bracketStyle: BracketStyle
+  richTextRules: RichTextRules
 }
 
 // The vertical feed. Blocks are separated by the doubled misregistration rule.
@@ -15,7 +17,8 @@ export function MediaStack({
   blocks,
   emojiSet,
   targets,
-  bracketStyle
+  bracketStyle,
+  richTextRules
 }: MediaStackProps) {
   if (blocks.length === 0) {
     return (
@@ -42,7 +45,12 @@ export function MediaStack({
               bracketStyle={bracketStyle}
             />
           ) : (
-            <MediaBlock block={block} emojiSet={emojiSet} eager={index === 0} />
+            <MediaBlock
+              block={block}
+              emojiSet={emojiSet}
+              eager={index === 0}
+              richTextRules={richTextRules}
+            />
           )}
         </div>
       ))}

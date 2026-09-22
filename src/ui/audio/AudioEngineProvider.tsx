@@ -1,6 +1,15 @@
 "use client"
 
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
+import {
+  createContext,
+  ReactNode,
+  RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState
+} from "react"
 
 import { SFX_CLIPS, SfxName } from "@/lib/audio/clips"
 
@@ -15,9 +24,28 @@ export interface AudioEngine {
   ready: boolean
   analyserRef: RefObject<AnalyserNode | null>
   resume: () => void
+  attachMedia: (el: HTMLAudioElement) => void
   setMasterVolume: (step: number) => void
   setSfxEnabled: (enabled: boolean) => void
   playSFX: (name: SfxName, pitchShift?: number) => void
+}
+
+const noop = () => {}
+
+const defaultEngine: AudioEngine = {
+  ready: false,
+  analyserRef: { current: null },
+  resume: noop,
+  attachMedia: noop,
+  setMasterVolume: noop,
+  setSfxEnabled: noop,
+  playSFX: noop
+}
+
+const AudioEngineContext = createContext<AudioEngine>(defaultEngine)
+
+export function useAudioEngine(): AudioEngine {
+  return useContext(AudioEngineContext)
 }
 
 // Detects ogg/vorbis support once
@@ -49,10 +77,8 @@ function preloadClips(
   }
 }
 
-// Owns the AudioContext, analyser tap, master and sfx gains, and clip buffers
-export function useAudioEngine(
-  audioRef: RefObject<HTMLAudioElement | null>
-): AudioEngine {
+// Site-wide audio engine: one AudioContext, the SFX chain, and the player tap
+export function AudioEngineProvider({ children }: { children: ReactNode }) {
   const ctxRef = useRef<AudioContext | null>(null)
 
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -63,6 +89,10 @@ export function useAudioEngine(
 
   const buffersRef = useRef<Partial<Record<SfxName, AudioBuffer>>>({})
 
+  const attachedRef = useRef(false)
+
+  const volumeRef = useRef(1)
+
   const sfxEnabledRef = useRef(true)
 
   const reducedMotionRef = useRef(false)
@@ -70,12 +100,6 @@ export function useAudioEngine(
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const audio = audioRef.current
-
-    if (!audio) {
-      return
-    }
-
     let ctx: AudioContext
 
     try {
@@ -91,29 +115,9 @@ export function useAudioEngine(
 
     ctxRef.current = ctx
 
-    const source = ctx.createMediaElementSource(audio)
-
-    const analyser = ctx.createAnalyser()
-
-    analyser.fftSize = 128
-
-    analyser.smoothingTimeConstant = 0.8
-
-    const masterGain = ctx.createGain()
-
     const sfxGain = ctx.createGain()
 
-    source.connect(analyser)
-
-    source.connect(masterGain)
-
-    masterGain.connect(ctx.destination)
-
     sfxGain.connect(ctx.destination)
-
-    analyserRef.current = analyser
-
-    masterGainRef.current = masterGain
 
     sfxGainRef.current = sfxGain
 
@@ -125,10 +129,24 @@ export function useAudioEngine(
 
     setReady(true)
 
+    const onGesture = () => {
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {})
+      }
+    }
+
+    document.addEventListener("pointerdown", onGesture)
+
+    document.addEventListener("keydown", onGesture)
+
     return () => {
+      document.removeEventListener("pointerdown", onGesture)
+
+      document.removeEventListener("keydown", onGesture)
+
       ctx.close().catch(() => {})
     }
-  }, [audioRef])
+  }, [])
 
   const resume = useCallback(() => {
     const ctx = ctxRef.current
@@ -138,11 +156,47 @@ export function useAudioEngine(
     }
   }, [])
 
+  const attachMedia = useCallback((el: HTMLAudioElement) => {
+    const ctx = ctxRef.current
+
+    if (!ctx || attachedRef.current) {
+      return
+    }
+
+    attachedRef.current = true
+
+    const source = ctx.createMediaElementSource(el)
+
+    const analyser = ctx.createAnalyser()
+
+    analyser.fftSize = 128
+
+    analyser.smoothingTimeConstant = 0.8
+
+    const masterGain = ctx.createGain()
+
+    masterGain.gain.value = volumeRef.current
+
+    source.connect(analyser)
+
+    source.connect(masterGain)
+
+    masterGain.connect(ctx.destination)
+
+    analyserRef.current = analyser
+
+    masterGainRef.current = masterGain
+  }, [])
+
   const setMasterVolume = useCallback((step: number) => {
+    const level = VOLUME_MAP[step] ?? 1
+
+    volumeRef.current = level
+
     const gain = masterGainRef.current
 
     if (gain) {
-      gain.gain.value = VOLUME_MAP[step] ?? 1
+      gain.gain.value = level
     }
   }, [])
 
@@ -188,12 +242,19 @@ export function useAudioEngine(
     src.start(0)
   }, [])
 
-  return {
+  const engine: AudioEngine = {
     ready,
     analyserRef,
     resume,
+    attachMedia,
     setMasterVolume,
     setSfxEnabled,
     playSFX
   }
+
+  return (
+    <AudioEngineContext.Provider value={engine}>
+      {children}
+    </AudioEngineContext.Provider>
+  )
 }

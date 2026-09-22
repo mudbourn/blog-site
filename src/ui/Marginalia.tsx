@@ -7,10 +7,17 @@ import type { MarginaliaSwap, PillarGravity } from "@/lib/theme/types"
 interface MarginaliaProps {
   gravity: PillarGravity
   swap: MarginaliaSwap
+  initialLeft?: string
+  initialRight?: string
 }
 
 // Desktop-only atmosphere walls, swapped on block boundary crossings (spec 3.4)
-export function Marginalia({ gravity, swap }: MarginaliaProps) {
+export function Marginalia({
+  gravity,
+  swap,
+  initialLeft,
+  initialRight
+}: MarginaliaProps) {
   const leftRef = useRef<HTMLDivElement>(null)
 
   const rightRef = useRef<HTMLDivElement>(null)
@@ -19,6 +26,16 @@ export function Marginalia({ gravity, swap }: MarginaliaProps) {
     const desktop = window.matchMedia("(min-width: 1200px)")
 
     if (!desktop.matches) return
+
+    if (initialLeft && leftRef.current) {
+      leftRef.current.dataset.currentUrl = initialLeft
+      leftRef.current.style.backgroundImage = `url(${initialLeft})`
+    }
+
+    if (initialRight && rightRef.current) {
+      rightRef.current.dataset.currentUrl = initialRight
+      rightRef.current.style.backgroundImage = `url(${initialRight})`
+    }
 
     function updateMarginalia(zone: HTMLDivElement | null, url: string) {
       if (!zone) return
@@ -68,7 +85,7 @@ export function Marginalia({ gravity, swap }: MarginaliaProps) {
     blocks.forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
-  }, [swap])
+  }, [swap, initialLeft, initialRight])
 
   const showLeft = gravity !== "left"
 

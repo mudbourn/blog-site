@@ -5,9 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Track } from "@/lib/navidrome/client"
 import { Icon } from "@/ui/Icon"
 import { ReactionStrip } from "@/ui/ReactionStrip"
+import { useAudioEngine } from "@/ui/audio/AudioEngineProvider"
 import { Marquee } from "@/ui/player/Marquee"
 import { VuMeter } from "@/ui/player/VuMeter"
-import { useAudioEngine } from "@/ui/player/useAudioEngine"
 
 interface PlayerProps {
   emojiSet: string[]
@@ -61,7 +61,7 @@ function writePref(key: string, value: string) {
 export function Player({ emojiSet }: PlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const engine = useAudioEngine(audioRef)
+  const engine = useAudioEngine()
 
   const [queue, setQueue] = useState<Track[]>([])
 
@@ -141,16 +141,8 @@ export function Player({ emojiSet }: PlayerProps) {
   }, [sfxEnabled, engine])
 
   useEffect(() => {
-    const onGesture = () => engine.resume()
-
-    document.addEventListener("pointerdown", onGesture, { once: true })
-
-    document.addEventListener("keydown", onGesture, { once: true })
-
-    return () => {
-      document.removeEventListener("pointerdown", onGesture)
-
-      document.removeEventListener("keydown", onGesture)
+    if (engine.ready && audioRef.current) {
+      engine.attachMedia(audioRef.current)
     }
   }, [engine])
 
@@ -286,17 +278,6 @@ export function Player({ emojiSet }: PlayerProps) {
     setSfxEnabled((enabled) => !enabled)
   }, [])
 
-  const onReact = useCallback(
-    (emojiIndex: number) => {
-      engine.resume()
-
-      const pitch = 0.9 + Math.min(emojiIndex, 4) * 0.1
-
-      engine.playSFX("reaction_pitch", pitch)
-    },
-    [engine]
-  )
-
   const unavailable = streamState === "unavailable"
 
   const surfaceId = track ? `${track.id}:${sessionIdRef.current}` : ""
@@ -307,7 +288,6 @@ export function Player({ emojiSet }: PlayerProps) {
         emojiSet={emojiSet}
         surfaceType="track"
         surfaceId={surfaceId}
-        onReact={onReact}
       />
 
       <div className={`player-strip${expanded ? " is-expanded" : ""}`}>

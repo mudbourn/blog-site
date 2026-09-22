@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import "@/app/globals.css"
 
 import { getActiveTheme } from "@/lib/theme/active"
+import { AudioEngineProvider } from "@/ui/audio/AudioEngineProvider"
 
 export const dynamic = "force-dynamic"
 
@@ -35,7 +36,9 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: theme.fontFaces }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AudioEngineProvider>{children}</AudioEngineProvider>
+      </body>
     </html>
   )
 }
